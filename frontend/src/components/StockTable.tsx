@@ -11,9 +11,9 @@ export function StockTable({ quotes, selectedSymbol, onSelect }: Props) {
   if (!quotes.length) {
     return (
       <div className="stock-table-container">
-        <div className="loading">
-          <div className="spinner" />
-          <p style={{ marginTop: 12 }}>Loading stock data...</p>
+        <div className="empty-state" style={{ padding: 40 }}>
+          <h3>暂无数据</h3>
+          <p>未能获取到股票数据，请检查网络连接</p>
         </div>
       </div>
     );
@@ -24,14 +24,14 @@ export function StockTable({ quotes, selectedSymbol, onSelect }: Props) {
       <table className="stock-table">
         <thead>
           <tr>
-            <th>Market</th>
-            <th>Symbol</th>
-            <th>Price</th>
-            <th>Change</th>
-            <th>Change %</th>
-            <th>Volume</th>
-            <th>High</th>
-            <th>Low</th>
+            <th>市场</th>
+            <th>股票代码</th>
+            <th>最新价</th>
+            <th>涨跌额</th>
+            <th>涨跌幅</th>
+            <th>成交量</th>
+            <th>最高</th>
+            <th>最低</th>
           </tr>
         </thead>
         <tbody>
@@ -52,18 +52,14 @@ export function StockTable({ quotes, selectedSymbol, onSelect }: Props) {
                   <div className="name-cell">{q.name}</div>
                 </td>
                 <td className="price-cell">{formatPrice(q.current_price, q.currency)}</td>
-                <td className={changeClass}>
+                <td className={`price-cell ${changeClass}`}>
                   {isPositive ? "+" : ""}
                   {q.currency === "JPY" ? q.change.toFixed(0) : q.change.toFixed(2)}
                 </td>
-                <td className={changeClass}>{formatPercent(q.change_percent)}</td>
+                <td className={`price-cell ${changeClass}`}>{formatPercent(q.change_percent)}</td>
                 <td className="volume-cell">{formatVolume(q.volume)}</td>
-                <td className="price-cell" style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                  {formatPrice(q.day_high, q.currency)}
-                </td>
-                <td className="price-cell" style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                  {formatPrice(q.day_low, q.currency)}
-                </td>
+                <td className="volume-cell">{formatPrice(q.day_high, q.currency)}</td>
+                <td className="volume-cell">{formatPrice(q.day_low, q.currency)}</td>
               </tr>
             );
           })}

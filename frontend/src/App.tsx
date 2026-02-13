@@ -14,12 +14,11 @@ export default function App() {
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
   const [detail, setDetail] = useState<StockDetail | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
 
   const { quotes: wsQuotes, connected } = useStockWebSocket();
 
-  // Initial fetch
   useEffect(() => {
     setLoading(true);
     getStocks()
@@ -28,14 +27,12 @@ export default function App() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Update from WebSocket
   useEffect(() => {
     if (wsQuotes.length > 0) {
       setQuotes(wsQuotes);
     }
   }, [wsQuotes]);
 
-  // Load detail when symbol selected
   const handleSelect = useCallback((symbol: string) => {
     setSelectedSymbol(symbol);
     setDetailLoading(true);
@@ -45,36 +42,47 @@ export default function App() {
       .finally(() => setDetailLoading(false));
   }, []);
 
-  // Filter quotes by market
   const filteredQuotes = marketFilter === "ALL"
     ? quotes
     : quotes.filter((q) => q.market === marketFilter);
 
+  const tabs: { key: MarketFilter; label: string }[] = [
+    { key: "ALL", label: "全部市场" },
+    { key: "US", label: "美股" },
+    { key: "JP", label: "日股" },
+  ];
+
   return (
     <div className="app">
       <header className="header">
-        <h1>
-          <span>Kabu</span> Stock Monitor
-        </h1>
+        <div className="header-left">
+          <div className="logo">K</div>
+          <h1>
+            Kabu
+            <small>智能股票监控平台</small>
+          </h1>
+        </div>
         <div className="connection-status">
           <div className={`status-dot ${connected ? "connected" : ""}`} />
-          {connected ? "Live" : "Connecting..."}
+          {connected ? "实时连接中" : "连接中..."}
         </div>
       </header>
 
-      <div className="market-tabs">
-        {(["ALL", "US", "JP"] as MarketFilter[]).map((m) => (
-          <button
-            key={m}
-            className={`tab ${marketFilter === m ? "active" : ""}`}
-            onClick={() => setMarketFilter(m)}
-          >
-            {m === "ALL" ? "All Markets" : m === "US" ? "US Stocks" : "JP Stocks"}
-          </button>
-        ))}
-        <div style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-muted)", alignSelf: "center" }}>
-          {quotes.length} stocks tracked
+      <div className="toolbar">
+        <div className="market-tabs">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              className={`tab ${marketFilter === t.key ? "active" : ""}`}
+              onClick={() => setMarketFilter(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
+        <span className="stock-count">
+          共追踪 {quotes.length} 支股票
+        </span>
       </div>
 
       {selectedSymbol && detail && !detailLoading && (
@@ -83,25 +91,38 @@ export default function App() {
 
       <div className="main-layout">
         <div>
-          <StockTable
-            quotes={filteredQuotes}
-            selectedSymbol={selectedSymbol}
-            onSelect={handleSelect}
-          />
+          {loading ? (
+            <div className="stock-table-container">
+              <div className="loading">
+                <div className="spinner" />
+                <p>正在获取股票数据...</p>
+              </div>
+            </div>
+          ) : (
+            <StockTable
+              quotes={filteredQuotes}
+              selectedSymbol={selectedSymbol}
+              onSelect={handleSelect}
+            />
+          )}
         </div>
 
         <div className="right-panel">
-          {!selectedSymbol && (
-            <div className="empty-state">
-              <h3>Select a Stock</h3>
-              <p>Click on any stock in the table to view AI analysis and trading strategies.</p>
+          {!selectedSymbol && !detailLoading && (
+            <div className="card">
+              <div className="empty-state">
+                <h3>选择一支股票</h3>
+                <p>点击左侧表格中的股票，查看 AI 分析和交易策略</p>
+              </div>
             </div>
           )}
 
           {detailLoading && (
-            <div className="loading">
-              <div className="spinner" />
-              <p style={{ marginTop: 12 }}>Analyzing {selectedSymbol}...</p>
+            <div className="card">
+              <div className="loading">
+                <div className="spinner" />
+                <p>正在分析 {selectedSymbol}...</p>
+              </div>
             </div>
           )}
 

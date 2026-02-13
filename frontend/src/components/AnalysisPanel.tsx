@@ -7,65 +7,71 @@ interface Props {
 }
 
 export function AnalysisPanel({ analysis, currency }: Props) {
-  const pricePrefix = currency === "JPY" ? "¥" : "$";
-  const decimals = currency === "JPY" ? 0 : 2;
+  const prefix = currency === "JPY" ? "¥" : "$";
+  const d = currency === "JPY" ? 0 : 2;
+
+  const confidencePct = Math.round(analysis.confidence * 100);
+  const fillColor = analysis.signal.includes("BUY")
+    ? "var(--green)" : analysis.signal.includes("SELL")
+    ? "var(--red)" : "var(--yellow)";
 
   return (
     <div className="card">
-      <div className="card-title">AI Analysis</div>
+      <div className="card-title">AI 智能分析</div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div className="signal-row">
         <span className={`signal-badge signal-${analysis.signal}`}>
           {signalLabel(analysis.signal)}
         </span>
-        <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
-          Confidence: {(analysis.confidence * 100).toFixed(0)}%
-        </span>
+        <div className="confidence-bar">
+          <div className="confidence-fill" style={{ width: `${confidencePct}%`, background: fillColor }} />
+        </div>
+        <span className="confidence-text">置信度 {confidencePct}%</span>
       </div>
 
-      <p className="analysis-summary">{analysis.summary}</p>
+      <div className="analysis-summary">{analysis.summary}</div>
 
       <div className="analysis-meta">
         <div className="meta-item">
-          <span className="meta-label">Target</span>
+          <span className="meta-label">目标价</span>
           <span className="meta-value change-positive">
-            {analysis.target_price ? `${pricePrefix}${formatNumber(analysis.target_price, decimals)}` : "-"}
+            {analysis.target_price ? `${prefix}${formatNumber(analysis.target_price, d)}` : "-"}
           </span>
         </div>
         <div className="meta-item">
-          <span className="meta-label">Stop Loss</span>
+          <span className="meta-label">止损价</span>
           <span className="meta-value change-negative">
-            {analysis.stop_loss ? `${pricePrefix}${formatNumber(analysis.stop_loss, decimals)}` : "-"}
+            {analysis.stop_loss ? `${prefix}${formatNumber(analysis.stop_loss, d)}` : "-"}
           </span>
         </div>
         <div className="meta-item">
-          <span className="meta-label">Support</span>
+          <span className="meta-label">支撑位</span>
           <span className="meta-value">
-            {analysis.support_price ? `${pricePrefix}${formatNumber(analysis.support_price, decimals)}` : "-"}
+            {analysis.support_price ? `${prefix}${formatNumber(analysis.support_price, d)}` : "-"}
           </span>
         </div>
         <div className="meta-item">
-          <span className="meta-label">Resistance</span>
+          <span className="meta-label">阻力位</span>
           <span className="meta-value">
-            {analysis.resistance_price ? `${pricePrefix}${formatNumber(analysis.resistance_price, decimals)}` : "-"}
+            {analysis.resistance_price ? `${prefix}${formatNumber(analysis.resistance_price, d)}` : "-"}
           </span>
         </div>
       </div>
 
       {analysis.risk_reward_ratio && (
-        <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 8 }}>
-          Risk/Reward Ratio: <strong>{analysis.risk_reward_ratio.toFixed(2)}</strong>
+        <div style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>
+          风险收益比: <strong style={{ color: "var(--text-primary)" }}>{analysis.risk_reward_ratio.toFixed(2)}</strong>
         </div>
       )}
 
-      <div className="card-title" style={{ marginTop: 12 }}>Key Factors</div>
+      <div className="card-title" style={{ marginTop: 4 }}>关键因素</div>
       <ul className="reasons-list">
         {analysis.reasons.map((reason, i) => (
           <li key={i}>{reason}</li>
         ))}
       </ul>
 
-      <div className="card-title" style={{ marginTop: 16 }}>Technical Indicators</div>
+      <div className="card-title" style={{ marginTop: 16 }}>技术指标</div>
       <div className="indicators-grid">
         <div className="indicator-item">
           <div className="indicator-label">RSI(14)</div>
@@ -91,30 +97,30 @@ export function AnalysisPanel({ analysis, currency }: Props) {
         </div>
         <div className="indicator-item">
           <div className="indicator-label">SMA(20)</div>
-          <div className="indicator-value">{formatNumber(analysis.indicators.sma_20, decimals)}</div>
+          <div className="indicator-value">{formatNumber(analysis.indicators.sma_20, d)}</div>
         </div>
         <div className="indicator-item">
           <div className="indicator-label">EMA(12)</div>
-          <div className="indicator-value">{formatNumber(analysis.indicators.ema_12, decimals)}</div>
+          <div className="indicator-value">{formatNumber(analysis.indicators.ema_12, d)}</div>
         </div>
         <div className="indicator-item">
-          <div className="indicator-label">BB Upper</div>
-          <div className="indicator-value">{formatNumber(analysis.indicators.bollinger_upper, decimals)}</div>
+          <div className="indicator-label">布林上轨</div>
+          <div className="indicator-value">{formatNumber(analysis.indicators.bollinger_upper, d)}</div>
         </div>
         <div className="indicator-item">
-          <div className="indicator-label">BB Lower</div>
-          <div className="indicator-value">{formatNumber(analysis.indicators.bollinger_lower, decimals)}</div>
+          <div className="indicator-label">布林下轨</div>
+          <div className="indicator-value">{formatNumber(analysis.indicators.bollinger_lower, d)}</div>
         </div>
         <div className="indicator-item">
           <div className="indicator-label">ATR(14)</div>
-          <div className="indicator-value">{formatNumber(analysis.indicators.atr_14, decimals)}</div>
+          <div className="indicator-value">{formatNumber(analysis.indicators.atr_14, d)}</div>
         </div>
         <div className="indicator-item">
-          <div className="indicator-label">Stoch %K</div>
+          <div className="indicator-label">KDJ %K</div>
           <div className="indicator-value">{formatNumber(analysis.indicators.stoch_k, 1)}</div>
         </div>
         <div className="indicator-item">
-          <div className="indicator-label">Stoch %D</div>
+          <div className="indicator-label">KDJ %D</div>
           <div className="indicator-value">{formatNumber(analysis.indicators.stoch_d, 1)}</div>
         </div>
       </div>

@@ -9,41 +9,36 @@ interface Props {
 }
 
 export function PriceChart({ quote, history }: Props) {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
 
   useEffect(() => {
-    if (!chartContainerRef.current) return;
+    if (!containerRef.current) return;
 
-    const chart = createChart(chartContainerRef.current, {
+    const chart = createChart(containerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#9ca3af",
+        textColor: "#64748b",
+        fontFamily: "'Inter', sans-serif",
       },
       grid: {
         vertLines: { color: "#1e293b" },
         horzLines: { color: "#1e293b" },
       },
-      width: chartContainerRef.current.clientWidth,
-      height: 320,
-      crosshair: {
-        mode: 0,
-      },
-      timeScale: {
-        borderColor: "#2d3748",
-      },
-      rightPriceScale: {
-        borderColor: "#2d3748",
-      },
+      width: containerRef.current.clientWidth,
+      height: 340,
+      crosshair: { mode: 0 },
+      timeScale: { borderColor: "#1e293b" },
+      rightPriceScale: { borderColor: "#1e293b" },
     });
 
     const series = chart.addCandlestickSeries({
-      upColor: "#10b981",
+      upColor: "#22c55e",
       downColor: "#ef4444",
-      borderUpColor: "#10b981",
+      borderUpColor: "#22c55e",
       borderDownColor: "#ef4444",
-      wickUpColor: "#10b981",
+      wickUpColor: "#22c55e",
       wickDownColor: "#ef4444",
     });
 
@@ -51,22 +46,16 @@ export function PriceChart({ quote, history }: Props) {
     seriesRef.current = series;
 
     const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+      if (containerRef.current) {
+        chart.applyOptions({ width: containerRef.current.clientWidth });
       }
     };
-
     window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      chart.remove();
-    };
+    return () => { window.removeEventListener("resize", handleResize); chart.remove(); };
   }, []);
 
   useEffect(() => {
     if (!seriesRef.current || !history.length) return;
-
     const data = history.map((bar) => ({
       time: bar.date as string,
       open: bar.open,
@@ -74,7 +63,6 @@ export function PriceChart({ quote, history }: Props) {
       low: bar.low,
       close: bar.close,
     }));
-
     seriesRef.current.setData(data as any);
     chartRef.current?.timeScale().fitContent();
   }, [history]);
@@ -85,20 +73,19 @@ export function PriceChart({ quote, history }: Props) {
   return (
     <div className="chart-container">
       <div className="chart-header">
-        <div>
+        <div className="chart-info">
           <span className="chart-symbol">{quote.symbol}</span>
-          <span style={{ marginLeft: 8, color: "var(--text-muted)", fontSize: 14 }}>
-            {quote.name}
-          </span>
+          <span className="chart-name">{quote.name}</span>
         </div>
-        <div>
-          <span className="chart-price">{formatPrice(quote.current_price, quote.currency)}</span>
-          <span className={`chart-change ${changeClass}`}>
-            {formatPercent(quote.change_percent)}
-          </span>
+        <div className="chart-price-group">
+          <div className="chart-price">{formatPrice(quote.current_price, quote.currency)}</div>
+          <div className={`chart-change ${changeClass}`}>
+            {isPositive ? "+" : ""}{quote.currency === "JPY" ? quote.change.toFixed(0) : quote.change.toFixed(2)}
+            {" "}({formatPercent(quote.change_percent)})
+          </div>
         </div>
       </div>
-      <div ref={chartContainerRef} />
+      <div ref={containerRef} />
     </div>
   );
 }

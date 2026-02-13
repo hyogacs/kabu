@@ -24,22 +24,11 @@ export function formatNumber(value: number | null | undefined, decimals = 2): st
 
 export function signalLabel(signal: string): string {
   const labels: Record<string, string> = {
-    STRONG_BUY: "Strong Buy",
-    BUY: "Buy",
-    HOLD: "Hold",
-    SELL: "Sell",
-    STRONG_SELL: "Strong Sell",
-  };
-  return labels[signal] ?? signal;
-}
-
-export function signalLabelJa(signal: string): string {
-  const labels: Record<string, string> = {
-    STRONG_BUY: "Strong Buy",
-    BUY: "Buy",
-    HOLD: "Hold",
-    SELL: "Sell",
-    STRONG_SELL: "Strong Sell",
+    STRONG_BUY: "强烈买入",
+    BUY: "买入",
+    HOLD: "持有",
+    SELL: "卖出",
+    STRONG_SELL: "强烈卖出",
   };
   return labels[signal] ?? signal;
 }
