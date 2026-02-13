@@ -1,7 +1,6 @@
-"""Trading strategy engine.
+"""交易策略引擎
 
-Generates actionable trading strategies based on market conditions
-and technical analysis for each stock.
+基于市场状况和技术分析，为每支股票生成可操作的交易策略。
 """
 
 import logging
@@ -23,10 +22,9 @@ logger = logging.getLogger(__name__)
 
 
 class StrategyEngine:
-    """Generates multiple trading strategies for a given stock."""
+    """为指定股票生成多种交易策略"""
 
     def generate_strategies(self, symbol: str) -> list[TradingStrategy]:
-        """Generate all applicable strategies for a symbol."""
         df = fetch_history_df(symbol, period="6mo")
         if df.empty or len(df) < 30:
             return []
@@ -60,23 +58,17 @@ class StrategyEngine:
         return strategies
 
     def _trend_following(
-        self,
-        symbol: str,
-        df: pd.DataFrame,
-        ind: TechnicalIndicators,
-        price: float,
-        atr: float,
+        self, symbol: str, df: pd.DataFrame, ind: TechnicalIndicators,
+        price: float, atr: float,
     ) -> TradingStrategy | None:
-        """Trend following: ride the prevailing trend with MA crossovers."""
         actions = []
 
         if ind.sma_5 and ind.sma_20 and ind.sma_60:
             if ind.sma_5 > ind.sma_20 > ind.sma_60:
-                # Strong uptrend
                 actions.append(
                     StrategyAction(
                         action="BUY",
-                        reason="All MAs aligned bullish (SMA5 > SMA20 > SMA60). Enter long on pullback to SMA20.",
+                        reason="均线多头排列（SMA5 > SMA20 > SMA60），回踩20日均线可考虑入场做多。",
                         entry_price=round(ind.sma_20, 2),
                         stop_loss=round(ind.sma_60, 2),
                         take_profit=round(price + 3 * atr, 2),
@@ -86,15 +78,14 @@ class StrategyEngine:
                 actions.append(
                     StrategyAction(
                         action="HOLD",
-                        reason="If already long, trail stop to SMA20. Move stop-loss up as price advances.",
+                        reason="已持仓者可将止损上移至20日均线，随价格上涨逐步提高止损位。",
                     )
                 )
             elif ind.sma_5 < ind.sma_20 < ind.sma_60:
-                # Strong downtrend
                 actions.append(
                     StrategyAction(
                         action="SELL",
-                        reason="All MAs aligned bearish (SMA5 < SMA20 < SMA60). Exit longs, consider short.",
+                        reason="均线空头排列（SMA5 < SMA20 < SMA60），建议清仓多单或考虑做空。",
                         stop_loss=round(ind.sma_20, 2),
                         take_profit=round(price - 3 * atr, 2),
                         position_size_pct=10.0,
@@ -104,7 +95,7 @@ class StrategyEngine:
                 actions.append(
                     StrategyAction(
                         action="WATCH",
-                        reason="MAs are not aligned. Wait for clear trend confirmation before entering.",
+                        reason="均线未形成明确排列，建议等待趋势确认后再入场。",
                     )
                 )
         elif ind.sma_5 and ind.sma_20:
@@ -112,7 +103,7 @@ class StrategyEngine:
                 actions.append(
                     StrategyAction(
                         action="BUY",
-                        reason="Short-term MA crossed above medium-term MA. Early bullish signal.",
+                        reason="短期均线上穿中期均线，出现早期看涨信号。",
                         entry_price=round(price, 2),
                         stop_loss=round(price - 2 * atr, 2),
                         take_profit=round(price + 3 * atr, 2),
@@ -123,7 +114,7 @@ class StrategyEngine:
                 actions.append(
                     StrategyAction(
                         action="SELL",
-                        reason="Short-term MA crossed below medium-term MA. Early bearish signal.",
+                        reason="短期均线下穿中期均线，出现早期看跌信号。",
                         stop_loss=round(price + 2 * atr, 2),
                         position_size_pct=10.0,
                     )
@@ -132,12 +123,8 @@ class StrategyEngine:
         return TradingStrategy(
             symbol=symbol,
             strategy_type=StrategyType.TREND_FOLLOWING,
-            name="Trend Following Strategy",
-            description=(
-                "Follows the prevailing trend using moving average alignment. "
-                "Enters on pullbacks in the direction of the trend, with stops "
-                "placed at key MA levels."
-            ),
+            name="趋势跟踪策略",
+            description="基于均线排列判断趋势方向，在趋势回调时顺势入场，止损设置在关键均线位置。",
             actions=actions,
             risk_level="MEDIUM",
             timeframe="MEDIUM",
@@ -145,14 +132,9 @@ class StrategyEngine:
         )
 
     def _mean_reversion(
-        self,
-        symbol: str,
-        df: pd.DataFrame,
-        ind: TechnicalIndicators,
-        price: float,
-        atr: float,
+        self, symbol: str, df: pd.DataFrame, ind: TechnicalIndicators,
+        price: float, atr: float,
     ) -> TradingStrategy | None:
-        """Mean reversion: trade bounces off Bollinger Bands."""
         actions = []
 
         if ind.bollinger_lower and ind.bollinger_upper and ind.bollinger_middle:
@@ -164,8 +146,8 @@ class StrategyEngine:
                     actions.append(
                         StrategyAction(
                             action="BUY",
-                            reason=f"Price near lower Bollinger Band ({ind.bollinger_lower:.2f}). "
-                            f"Expect mean reversion to middle band ({ind.bollinger_middle:.2f}).",
+                            reason=f"股价接近布林带下轨（{ind.bollinger_lower:.2f}），"
+                            f"预期向中轨（{ind.bollinger_middle:.2f}）回归。",
                             entry_price=round(ind.bollinger_lower, 2),
                             stop_loss=round(ind.bollinger_lower - atr, 2),
                             take_profit=round(ind.bollinger_middle, 2),
@@ -176,8 +158,8 @@ class StrategyEngine:
                     actions.append(
                         StrategyAction(
                             action="SELL",
-                            reason=f"Price near upper Bollinger Band ({ind.bollinger_upper:.2f}). "
-                            f"Expect mean reversion to middle band ({ind.bollinger_middle:.2f}).",
+                            reason=f"股价接近布林带上轨（{ind.bollinger_upper:.2f}），"
+                            f"预期向中轨（{ind.bollinger_middle:.2f}）回落。",
                             stop_loss=round(ind.bollinger_upper + atr, 2),
                             take_profit=round(ind.bollinger_middle, 2),
                             position_size_pct=10.0,
@@ -187,7 +169,7 @@ class StrategyEngine:
                     actions.append(
                         StrategyAction(
                             action="WATCH",
-                            reason="Price within normal Bollinger Band range. Wait for extremes.",
+                            reason="股价处于布林带中间区域，等待触及上下轨时再操作。",
                         )
                     )
 
@@ -196,7 +178,7 @@ class StrategyEngine:
                 actions.append(
                     StrategyAction(
                         action="BUY",
-                        reason=f"RSI at {ind.rsi_14:.1f} (oversold). Historical tendency to bounce from this level.",
+                        reason=f"RSI 为 {ind.rsi_14:.1f}（超卖），历史上该水平容易出现反弹。",
                         entry_price=round(price, 2),
                         stop_loss=round(price - 2 * atr, 2),
                         take_profit=round(price + 2 * atr, 2),
@@ -207,7 +189,7 @@ class StrategyEngine:
                 actions.append(
                     StrategyAction(
                         action="SELL",
-                        reason=f"RSI at {ind.rsi_14:.1f} (overbought). Consider taking profits or shorting.",
+                        reason=f"RSI 为 {ind.rsi_14:.1f}（超买），建议获利了结或考虑做空。",
                         stop_loss=round(price + 2 * atr, 2),
                         take_profit=round(price - 2 * atr, 2),
                         position_size_pct=8.0,
@@ -217,12 +199,8 @@ class StrategyEngine:
         return TradingStrategy(
             symbol=symbol,
             strategy_type=StrategyType.MEAN_REVERSION,
-            name="Mean Reversion Strategy",
-            description=(
-                "Trades against extremes using Bollinger Bands and RSI. "
-                "Buys oversold conditions and sells overbought conditions, "
-                "expecting price to revert to the mean."
-            ),
+            name="均值回归策略",
+            description="利用布林带和RSI识别超买超卖极端状态，在偏离均值时逆向操作，预期价格回归中枢。",
             actions=actions,
             risk_level="MEDIUM",
             timeframe="SHORT",
@@ -230,14 +208,9 @@ class StrategyEngine:
         )
 
     def _momentum(
-        self,
-        symbol: str,
-        df: pd.DataFrame,
-        ind: TechnicalIndicators,
-        price: float,
-        atr: float,
+        self, symbol: str, df: pd.DataFrame, ind: TechnicalIndicators,
+        price: float, atr: float,
     ) -> TradingStrategy | None:
-        """Momentum: follow strong directional moves with MACD and RSI."""
         actions = []
 
         if ind.macd is not None and ind.macd_signal is not None:
@@ -247,8 +220,8 @@ class StrategyEngine:
                         StrategyAction(
                             action="BUY",
                             reason=(
-                                f"MACD bullish with increasing histogram. "
-                                f"RSI at {ind.rsi_14:.1f} confirms momentum without being overbought."
+                                f"MACD 金叉且柱状图持续放大，"
+                                f"RSI 为 {ind.rsi_14:.1f}，动能确认且未超买。"
                             ),
                             entry_price=round(price, 2),
                             stop_loss=round(price - 2 * atr, 2),
@@ -260,27 +233,26 @@ class StrategyEngine:
                     actions.append(
                         StrategyAction(
                             action="WATCH",
-                            reason="MACD bullish but RSI not confirming. Wait for alignment.",
+                            reason="MACD 看涨但 RSI 未确认，等待指标共振后再入场。",
                         )
                     )
             elif ind.macd < ind.macd_signal and ind.macd_histogram and ind.macd_histogram < 0:
                 actions.append(
                     StrategyAction(
                         action="SELL",
-                        reason="MACD bearish crossover with negative histogram. Momentum shifting downward.",
+                        reason="MACD 死叉且柱状图为负，下行动能增强。",
                         stop_loss=round(price + 2 * atr, 2),
                         position_size_pct=10.0,
                     )
                 )
 
-        # Check price rate of change
         if len(df) >= 10:
             roc_10 = (price - float(df["Close"].iloc[-10])) / float(df["Close"].iloc[-10]) * 100
             if roc_10 > 8:
                 actions.append(
                     StrategyAction(
                         action="BUY",
-                        reason=f"Strong upward momentum: +{roc_10:.1f}% in 10 days. Trail stop tightly.",
+                        reason=f"10日涨幅达 +{roc_10:.1f}%，上涨动能强劲，可跟随趋势并设紧密止损。",
                         stop_loss=round(price - 1.5 * atr, 2),
                         take_profit=round(price + 2 * atr, 2),
                         position_size_pct=8.0,
@@ -290,7 +262,7 @@ class StrategyEngine:
                 actions.append(
                     StrategyAction(
                         action="SELL",
-                        reason=f"Strong downward momentum: {roc_10:.1f}% in 10 days. Avoid catching falling knife.",
+                        reason=f"10日跌幅达 {roc_10:.1f}%，下跌动能较强，切勿盲目抄底。",
                         stop_loss=round(price + 1.5 * atr, 2),
                         position_size_pct=8.0,
                     )
@@ -299,12 +271,8 @@ class StrategyEngine:
         return TradingStrategy(
             symbol=symbol,
             strategy_type=StrategyType.MOMENTUM,
-            name="Momentum Strategy",
-            description=(
-                "Follows strong directional moves using MACD crossovers "
-                "and rate of change. Enters when momentum is confirmed "
-                "by multiple indicators."
-            ),
+            name="动量策略",
+            description="追踪强势方向性行情，利用MACD交叉和变化率确认动能方向，在多指标共振时入场。",
             actions=actions,
             risk_level="HIGH",
             timeframe="SHORT",
@@ -312,14 +280,9 @@ class StrategyEngine:
         )
 
     def _breakout(
-        self,
-        symbol: str,
-        df: pd.DataFrame,
-        ind: TechnicalIndicators,
-        price: float,
-        atr: float,
+        self, symbol: str, df: pd.DataFrame, ind: TechnicalIndicators,
+        price: float, atr: float,
     ) -> TradingStrategy | None:
-        """Breakout: trade price breaking key support/resistance levels."""
         actions = []
 
         if len(df) >= 20:
@@ -327,13 +290,11 @@ class StrategyEngine:
             low_20 = float(df["Low"].iloc[-20:].min())
             range_20 = high_20 - low_20
 
-            # Near resistance breakout
             if price > high_20 * 0.98:
                 actions.append(
                     StrategyAction(
                         action="BUY",
-                        reason=f"Price approaching 20-day high ({high_20:.2f}). "
-                        f"Break above could trigger breakout rally.",
+                        reason=f"股价逼近20日高点（{high_20:.2f}），突破后可能引发向上加速行情。",
                         entry_price=round(high_20 * 1.005, 2),
                         stop_loss=round(high_20 - atr, 2),
                         take_profit=round(high_20 + range_20 * 0.5, 2),
@@ -341,13 +302,11 @@ class StrategyEngine:
                     )
                 )
 
-            # Near support breakdown
             if price < low_20 * 1.02:
                 actions.append(
                     StrategyAction(
                         action="SELL",
-                        reason=f"Price approaching 20-day low ({low_20:.2f}). "
-                        f"Break below could trigger further selling.",
+                        reason=f"股价逼近20日低点（{low_20:.2f}），跌破后可能引发进一步下跌。",
                         stop_loss=round(low_20 + atr, 2),
                         take_profit=round(low_20 - range_20 * 0.5, 2),
                         position_size_pct=10.0,
@@ -361,10 +320,10 @@ class StrategyEngine:
                     StrategyAction(
                         action="WATCH",
                         reason=(
-                            f"Price in consolidation range. "
-                            f"Resistance at {high_20:.2f} ({dist_to_high_pct:.1f}% away), "
-                            f"Support at {low_20:.2f} ({dist_to_low_pct:.1f}% away). "
-                            f"Set alerts at these levels."
+                            f"股价处于整理区间。"
+                            f"上方阻力位 {high_20:.2f}（距 {dist_to_high_pct:.1f}%），"
+                            f"下方支撑位 {low_20:.2f}（距 {dist_to_low_pct:.1f}%）。"
+                            f"建议在关键位置设置提醒。"
                         ),
                     )
                 )
@@ -372,12 +331,8 @@ class StrategyEngine:
         return TradingStrategy(
             symbol=symbol,
             strategy_type=StrategyType.BREAKOUT,
-            name="Breakout Strategy",
-            description=(
-                "Watches for price breaking through key support/resistance levels. "
-                "Enters on confirmed breakouts with volume, with stops placed "
-                "just below the breakout level."
-            ),
+            name="突破策略",
+            description="监控股价是否突破关键支撑/阻力位，在确认突破后入场，止损设在突破位下方。",
             actions=actions,
             risk_level="HIGH",
             timeframe="SHORT",
@@ -385,17 +340,11 @@ class StrategyEngine:
         )
 
     def _swing_trade(
-        self,
-        symbol: str,
-        df: pd.DataFrame,
-        ind: TechnicalIndicators,
-        price: float,
-        atr: float,
+        self, symbol: str, df: pd.DataFrame, ind: TechnicalIndicators,
+        price: float, atr: float,
     ) -> TradingStrategy | None:
-        """Swing trade: multi-day holds using combined signals."""
         actions = []
 
-        # Composite scoring for swing entry
         buy_signals = 0
         sell_signals = 0
 
@@ -427,8 +376,8 @@ class StrategyEngine:
             actions.append(
                 StrategyAction(
                     action="BUY",
-                    reason=f"Swing buy: {buy_signals}/4 indicators bullish. "
-                    f"Hold for 5-15 trading days targeting 2-3x ATR profit.",
+                    reason=f"波段做多：{buy_signals}/4 个指标看涨，"
+                    f"建议持有5-15个交易日，目标收益2-3倍ATR。",
                     entry_price=round(price, 2),
                     stop_loss=round(price - 2 * atr, 2),
                     take_profit=round(price + 3 * atr, 2),
@@ -439,8 +388,8 @@ class StrategyEngine:
             actions.append(
                 StrategyAction(
                     action="SELL",
-                    reason=f"Swing sell: {sell_signals}/4 indicators bearish. "
-                    f"Exit longs, consider short for 5-15 days.",
+                    reason=f"波段做空：{sell_signals}/4 个指标看跌，"
+                    f"建议清仓多单，可考虑做空持有5-15个交易日。",
                     stop_loss=round(price + 2 * atr, 2),
                     take_profit=round(price - 3 * atr, 2),
                     position_size_pct=10.0,
@@ -450,18 +399,17 @@ class StrategyEngine:
             actions.append(
                 StrategyAction(
                     action="HOLD",
-                    reason=f"Mixed signals (Buy: {buy_signals}, Sell: {sell_signals}). "
-                    f"Wait for clearer setup with 3+ aligned indicators.",
+                    reason=f"信号混合（看多：{buy_signals}，看空：{sell_signals}），"
+                    f"等待3个以上指标同向确认后再操作。",
                 )
             )
 
-        # Position management
         actions.append(
             StrategyAction(
                 action="HOLD",
                 reason=(
-                    f"Risk management: Use ATR-based stops ({atr:.2f} per share). "
-                    f"Never risk more than 2% of portfolio on a single swing trade."
+                    f"风控提示：使用ATR止损（每股 {atr:.2f}），"
+                    f"单笔波段交易不超过总仓位的2%。"
                 ),
             )
         )
@@ -469,12 +417,8 @@ class StrategyEngine:
         return TradingStrategy(
             symbol=symbol,
             strategy_type=StrategyType.SWING_TRADE,
-            name="Swing Trading Strategy",
-            description=(
-                "Multi-day position strategy using composite indicator scoring. "
-                "Requires 3+ indicators to align before entry. Holds for 5-15 "
-                "trading days with ATR-based risk management."
-            ),
+            name="波段交易策略",
+            description="多指标综合评分的中线持仓策略，需3个以上指标共振方可入场，持仓5-15个交易日，采用ATR风控管理。",
             actions=actions,
             risk_level="MEDIUM",
             timeframe="MEDIUM",
@@ -482,5 +426,4 @@ class StrategyEngine:
         )
 
 
-# Singleton
 strategy_engine = StrategyEngine()
