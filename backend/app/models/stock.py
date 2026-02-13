@@ -106,9 +106,36 @@ class HistoricalBar(BaseModel):
     volume: int
 
 
+class Sentiment(str, Enum):
+    POSITIVE = "POSITIVE"
+    NEGATIVE = "NEGATIVE"
+    NEUTRAL = "NEUTRAL"
+
+
+class NewsItem(BaseModel):
+    title: str
+    source: str
+    published_at: str
+    url: str
+    sentiment: Sentiment
+    score: float  # -1.0 to 1.0
+
+
+class NewsSentiment(BaseModel):
+    symbol: str
+    overall_score: float  # -1.0 to 1.0
+    overall_sentiment: Sentiment
+    positive_count: int
+    negative_count: int
+    neutral_count: int
+    news: list[NewsItem]
+    analyzed_at: datetime
+
+
 class StockDetail(BaseModel):
     quote: StockQuote
     indicators: TechnicalIndicators
     analysis: AIAnalysis
     strategies: list[TradingStrategy]
     history: list[HistoricalBar]
+    news_sentiment: NewsSentiment | None = None

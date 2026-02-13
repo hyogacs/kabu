@@ -5,6 +5,7 @@ import { getStockDetail } from "../services/api";
 import { formatPrice, formatVolume, formatPercent, formatNumber, signalLabel } from "../utils/format";
 import { PriceChart } from "../components/PriceChart";
 import { StrategyPanel } from "../components/StrategyPanel";
+import { NewsSentimentPanel } from "../components/NewsSentiment";
 
 export function StockDetailPage() {
   const { symbol } = useParams<{ symbol: string }>();
@@ -328,9 +329,12 @@ export function StockDetailPage() {
           </div>
         </div>
 
-        {/* Right Column: Strategies */}
+        {/* Right Column: Strategies + News */}
         <div className="detail-col">
           <StrategyPanel strategies={strategies} currency={currency} />
+          {detail.news_sentiment && (
+            <NewsSentimentPanel sentiment={detail.news_sentiment} />
+          )}
         </div>
       </div>
     </div>

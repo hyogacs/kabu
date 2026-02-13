@@ -81,10 +81,33 @@ export interface HistoricalBar {
   volume: number;
 }
 
+export type SentimentType = "POSITIVE" | "NEGATIVE" | "NEUTRAL";
+
+export interface NewsItem {
+  title: string;
+  source: string;
+  published_at: string;
+  url: string;
+  sentiment: SentimentType;
+  score: number;
+}
+
+export interface NewsSentiment {
+  symbol: string;
+  overall_score: number;
+  overall_sentiment: SentimentType;
+  positive_count: number;
+  negative_count: number;
+  neutral_count: number;
+  news: NewsItem[];
+  analyzed_at: string;
+}
+
 export interface StockDetail {
   quote: StockQuote;
   indicators: TechnicalIndicators;
   analysis: AIAnalysis;
   strategies: TradingStrategy[];
   history: HistoricalBar[];
+  news_sentiment: NewsSentiment | null;
 }

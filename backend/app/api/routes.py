@@ -9,11 +9,13 @@ from app.models.stock import (
     AIAnalysis,
     HistoricalBar,
     Market,
+    NewsSentiment,
     StockDetail,
     StockQuote,
     TradingStrategy,
 )
 from app.services.ai_analyzer import ai_analyzer
+from app.services.news_sentiment import news_sentiment_analyzer
 from app.services.stock_data import fetch_history, fetch_quote, fetch_quotes
 from app.strategies.strategy_engine import strategy_engine
 
@@ -94,6 +96,17 @@ async def get_strategies(symbol: str):
     return strategies
 
 
+@router.get("/news/{symbol}", response_model=NewsSentiment)
+async def get_news_sentiment(symbol: str):
+    """Get news sentiment analysis for a stock."""
+    result = news_sentiment_analyzer.analyze(symbol.upper())
+    if not result:
+        raise HTTPException(
+            status_code=404, detail=f"Unable to fetch news for {symbol}"
+        )
+    return result
+
+
 @router.get("/stocks/{symbol}/detail", response_model=StockDetail)
 async def get_stock_detail(symbol: str):
     """Get comprehensive stock detail including quote, analysis, and strategies."""
@@ -111,6 +124,7 @@ async def get_stock_detail(symbol: str):
 
     strategies = strategy_engine.generate_strategies(symbol)
     history = fetch_history(symbol, period="6mo")
+    news_sentiment = news_sentiment_analyzer.analyze(symbol)
 
     return StockDetail(
         quote=quote,
@@ -118,6 +132,7 @@ async def get_stock_detail(symbol: str):
         analysis=analysis,
         strategies=strategies,
         history=history,
+        news_sentiment=news_sentiment,
     )
 
 
