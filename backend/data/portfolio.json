@@ -1,0 +1,87 @@
+{
+  "categories": [
+    {
+      "category_name": "株式（特定預り）",
+      "total_market_value": 9481780,
+      "total_pnl": 1855175,
+      "stocks": [
+        {"code": "1478", "name": "iSMSCI高配当", "quantity": 10, "cost_price": 3618, "current_price": 5065, "cost_total": 36180, "market_value": 50650, "unrealized_pnl": 14470},
+        {"code": "1540", "name": "純金信託", "quantity": 30, "cost_price": 17057, "current_price": 24360, "cost_total": 511710, "market_value": 730800, "unrealized_pnl": 219090},
+        {"code": "1541", "name": "純プラ信", "quantity": 10, "cost_price": 6105, "current_price": 10230, "cost_total": 61050, "market_value": 102300, "unrealized_pnl": 41250},
+        {"code": "1542", "name": "純銀信託", "quantity": 5, "cost_price": 16689, "current_price": 38790, "cost_total": 83445, "market_value": 193950, "unrealized_pnl": 110505},
+        {"code": "1651", "name": "iF高配当40", "quantity": 50, "cost_price": 2016, "current_price": 3024, "cost_total": 100800, "market_value": 151200, "unrealized_pnl": 50400},
+        {"code": "1693", "name": "銅ETF", "quantity": 20, "cost_price": 7531, "current_price": 8059, "cost_total": 150620, "market_value": 161180, "unrealized_pnl": 10560},
+        {"code": "2866", "name": "GX優先証券", "quantity": 100, "cost_price": 905, "current_price": 1010, "cost_total": 90500, "market_value": 101000, "unrealized_pnl": 10500},
+        {"code": "2914", "name": "JT", "quantity": 100, "cost_price": 4387, "current_price": 6134, "cost_total": 438700, "market_value": 613400, "unrealized_pnl": 174700},
+        {"code": "2936", "name": "ベースフード", "quantity": 700, "cost_price": 430, "current_price": 355, "cost_total": 301000, "market_value": 248500, "unrealized_pnl": -52500},
+        {"code": "3197", "name": "すかいらーくHD", "quantity": 100, "cost_price": 2970, "current_price": 3389, "cost_total": 297000, "market_value": 338900, "unrealized_pnl": 41900},
+        {"code": "3350", "name": "メタプラネット", "quantity": 500, "cost_price": 634, "current_price": 355, "cost_total": 317000, "market_value": 177500, "unrealized_pnl": -139500},
+        {"code": "3660", "name": "アイスタイル", "quantity": 100, "cost_price": 518, "current_price": 454, "cost_total": 51800, "market_value": 45400, "unrealized_pnl": -6400},
+        {"code": "4502", "name": "武田薬", "quantity": 100, "cost_price": 4291, "current_price": 5504, "cost_total": 429100, "market_value": 550400, "unrealized_pnl": 121300},
+        {"code": "4503", "name": "アステラス薬", "quantity": 100, "cost_price": 1380, "current_price": 2504, "cost_total": 138000, "market_value": 250400, "unrealized_pnl": 112400},
+        {"code": "6758", "name": "ソニーグループ", "quantity": 300, "cost_price": 2823, "current_price": 3455, "cost_total": 846900, "market_value": 1036500, "unrealized_pnl": 189600},
+        {"code": "7203", "name": "トヨタ自", "quantity": 200, "cost_price": 2563, "current_price": 3729, "cost_total": 512600, "market_value": 745800, "unrealized_pnl": 233200},
+        {"code": "7974", "name": "任天堂", "quantity": 100, "cost_price": 12575, "current_price": 8662, "cost_total": 1257500, "market_value": 866200, "unrealized_pnl": -391300},
+        {"code": "8002", "name": "丸紅", "quantity": 100, "cost_price": 2760, "current_price": 5957, "cost_total": 276000, "market_value": 595700, "unrealized_pnl": 319700},
+        {"code": "8031", "name": "三井物産", "quantity": 100, "cost_price": 2901, "current_price": 5364, "cost_total": 290100, "market_value": 536400, "unrealized_pnl": 246300},
+        {"code": "8053", "name": "住友商", "quantity": 100, "cost_price": 3666, "current_price": 6333, "cost_total": 366600, "market_value": 633300, "unrealized_pnl": 266700},
+        {"code": "8058", "name": "三菱商事", "quantity": 100, "cost_price": 2778, "current_price": 4925, "cost_total": 277800, "market_value": 492500, "unrealized_pnl": 214700},
+        {"code": "8303", "name": "SBI新生銀行", "quantity": 100, "cost_price": 1450, "current_price": 2091, "cost_total": 145000, "market_value": 209100, "unrealized_pnl": 64100},
+        {"code": "9023", "name": "東京メトロ", "quantity": 200, "cost_price": 1812, "current_price": 1682, "cost_total": 362400, "market_value": 336400, "unrealized_pnl": -26000},
+        {"code": "9201", "name": "JAL", "quantity": 100, "cost_price": 2848, "current_price": 3143, "cost_total": 284800, "market_value": 314300, "unrealized_pnl": 29500}
+      ]
+    },
+    {
+      "category_name": "株式（一般預り）",
+      "total_market_value": 1027400,
+      "total_pnl": 113400,
+      "stocks": [
+        {"code": "6758", "name": "ソニーグループ", "quantity": 200, "cost_price": 2780, "current_price": 3455, "cost_total": 556000, "market_value": 691000, "unrealized_pnl": 135000},
+        {"code": "9023", "name": "東京メトロ", "quantity": 200, "cost_price": 1790, "current_price": 1682, "cost_total": 358000, "market_value": 336400, "unrealized_pnl": -21600}
+      ]
+    },
+    {
+      "category_name": "株式（NISA預り・成長投資枠）",
+      "total_market_value": 2118370,
+      "total_pnl": -206430,
+      "stocks": [
+        {"code": "5949", "name": "ユニプレス", "quantity": 100, "cost_price": 1321, "current_price": 1456, "cost_total": 132100, "market_value": 145600, "unrealized_pnl": 13500},
+        {"code": "6758", "name": "ソニーグループ", "quantity": 200, "cost_price": 3905, "current_price": 3455, "cost_total": 781000, "market_value": 691000, "unrealized_pnl": -90000},
+        {"code": "7974", "name": "任天堂", "quantity": 100, "cost_price": 10015, "current_price": 8662, "cost_total": 1001500, "market_value": 866200, "unrealized_pnl": -135300},
+        {"code": "8001", "name": "伊藤忠", "quantity": 100, "cost_price": 2080, "current_price": 2067.5, "cost_total": 208000, "market_value": 206750, "unrealized_pnl": -1250},
+        {"code": "9501", "name": "東電力HD", "quantity": 200, "cost_price": 610, "current_price": 636.6, "cost_total": 122000, "market_value": 127320, "unrealized_pnl": 5320},
+        {"code": "9990", "name": "サックスバーHD", "quantity": 100, "cost_price": 802, "current_price": 815, "cost_total": 80200, "market_value": 81500, "unrealized_pnl": 1300}
+      ]
+    },
+    {
+      "category_name": "投資信託（特定預り）",
+      "total_market_value": 251623,
+      "total_pnl": 41620,
+      "funds": [
+        {"name": "eMAXIS Slim 米国株式（S&P500）", "units": "30,704口", "cost_price": 32570, "nav": 39015, "cost_total": 100002, "market_value": 119791, "unrealized_pnl": 19789, "distribution_method": "再投資"},
+        {"name": "eMAXIS Slim 全世界株式（オール・カントリー）", "units": "36,343口", "cost_price": 27516, "nav": 33680, "cost_total": 100001, "market_value": 122403, "unrealized_pnl": 22402, "distribution_method": "再投資"},
+        {"name": "iFreeNEXT FANG+インデックス", "units": "1,239口", "cost_price": 80711, "nav": 76106, "cost_total": 10000, "market_value": 9429, "unrealized_pnl": -571, "distribution_method": "再投資"}
+      ]
+    },
+    {
+      "category_name": "投資信託（NISA・つみたて投資枠）",
+      "total_market_value": 96816,
+      "total_pnl": -3185,
+      "funds": [
+        {"name": "eMAXIS Slim 米国株式（S&P500）", "units": "12,324口", "cost_price": 40572, "nav": 39015, "cost_total": 50000, "market_value": 48082, "unrealized_pnl": -1918, "distribution_method": "再投資"},
+        {"name": "eMAXIS Slim 全世界株式（オール・カントリー）", "units": "14,470口", "cost_price": 34555, "nav": 33680, "cost_total": 50001, "market_value": 48734, "unrealized_pnl": -1267, "distribution_method": "再投資"}
+      ]
+    },
+    {
+      "category_name": "国内債券（特定預り）",
+      "total_market_value": 98570,
+      "total_pnl": null,
+      "bonds": [
+        {"name": "第191回利付国債（20年）", "coupon_rate": 2.0, "maturity_date": "2044/12/20", "coupon_dates": "06/12-20", "face_value": 100000, "cost_price": 98.57, "market_value": 98570}
+      ]
+    }
+  ],
+  "total_market_value": 13074559,
+  "total_cost": 11273985,
+  "total_pnl": 1800580
+}

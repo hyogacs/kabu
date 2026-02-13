@@ -53,9 +53,15 @@ export function HomePage() {
             <small>智能股票监控平台</small>
           </h1>
         </div>
-        <div className="connection-status">
-          <div className={`status-dot ${connected ? "connected" : ""}`} />
-          {connected ? "实时连接中" : "连接中..."}
+        <div className="header-right-group">
+          <div className="nav-tabs">
+            <button className="tab active">監視一覧</button>
+            <button className="tab" onClick={() => navigate("/portfolio")}>保有証券</button>
+          </div>
+          <div className="connection-status">
+            <div className={`status-dot ${connected ? "connected" : ""}`} />
+            {connected ? "实时连接中" : "连接中..."}
+          </div>
         </div>
       </header>
 

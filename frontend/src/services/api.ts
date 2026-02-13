@@ -1,4 +1,4 @@
-import type { StockQuote, StockDetail, AIAnalysis, TradingStrategy, HistoricalBar, Market } from "../types";
+import type { StockQuote, StockDetail, AIAnalysis, TradingStrategy, HistoricalBar, Market, Portfolio } from "../types";
 
 const BASE_URL = "/api";
 
@@ -32,4 +32,8 @@ export async function getStrategies(symbol: string): Promise<TradingStrategy[]> 
 
 export async function getHistory(symbol: string, period = "6mo"): Promise<HistoricalBar[]> {
   return fetchJSON(`${BASE_URL}/stocks/${symbol}/history?period=${period}`);
+}
+
+export async function getPortfolio(): Promise<Portfolio> {
+  return fetchJSON(`${BASE_URL}/portfolio`);
 }

@@ -1,10 +1,13 @@
 """API routes for the stock monitoring application."""
 
+import json
 import logging
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query
 
 from app.core.config import settings
+from app.models.portfolio import Portfolio
 from app.models.stock import (
     AIAnalysis,
     HistoricalBar,
@@ -18,6 +21,8 @@ from app.services.ai_analyzer import ai_analyzer
 from app.services.news_sentiment import news_sentiment_analyzer
 from app.services.stock_data import fetch_history, fetch_quote, fetch_quotes
 from app.strategies.strategy_engine import strategy_engine
+
+PORTFOLIO_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "portfolio.json"
 
 logger = logging.getLogger(__name__)
 
@@ -143,3 +148,22 @@ async def get_default_watchlist():
         "us": settings.DEFAULT_US_STOCKS,
         "jp": settings.DEFAULT_JP_STOCKS,
     }
+
+
+@router.get("/portfolio", response_model=Portfolio)
+async def get_portfolio():
+    """Get portfolio holdings."""
+    if not PORTFOLIO_PATH.exists():
+        raise HTTPException(status_code=404, detail="Portfolio data not found")
+    data = json.loads(PORTFOLIO_PATH.read_text(encoding="utf-8"))
+    return Portfolio(**data)
+
+
+@router.put("/portfolio")
+async def update_portfolio(portfolio: Portfolio):
+    """Update portfolio holdings."""
+    PORTFOLIO_PATH.parent.mkdir(parents=True, exist_ok=True)
+    PORTFOLIO_PATH.write_text(
+        portfolio.model_dump_json(indent=2), encoding="utf-8"
+    )
+    return {"status": "ok"}

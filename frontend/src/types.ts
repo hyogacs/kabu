@@ -111,3 +111,54 @@ export interface StockDetail {
   history: HistoricalBar[];
   news_sentiment: NewsSentiment | null;
 }
+
+// Portfolio types
+export interface StockHolding {
+  code: string;
+  name: string;
+  quantity: number;
+  order_pending: number | null;
+  cost_price: number;
+  current_price: number;
+  cost_total: number;
+  market_value: number;
+  unrealized_pnl: number;
+}
+
+export interface FundHolding {
+  name: string;
+  units: string;
+  order_pending: number | null;
+  cost_price: number;
+  nav: number;
+  cost_total: number;
+  market_value: number;
+  unrealized_pnl: number;
+  distribution_method: string;
+}
+
+export interface BondHolding {
+  name: string;
+  coupon_rate: number;
+  maturity_date: string;
+  coupon_dates: string;
+  face_value: number;
+  cost_price: number;
+  market_value: number;
+}
+
+export interface HoldingCategory {
+  category_name: string;
+  total_market_value: number;
+  total_pnl: number | null;
+  stocks: StockHolding[] | null;
+  funds: FundHolding[] | null;
+  bonds: BondHolding[] | null;
+}
+
+export interface Portfolio {
+  categories: HoldingCategory[];
+  total_market_value: number;
+  total_cost: number;
+  total_pnl: number;
+}

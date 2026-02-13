@@ -407,3 +407,68 @@ body {
   font-variant-numeric: tabular-nums;
   font-family: "SF Mono","Consolas","Menlo",monospace;
 }
+
+/* ========== Header Navigation ========== */
+.header-right-group {
+  display: flex; align-items: center; gap: 14px;
+}
+.nav-tabs {
+  display: flex; gap: 6px;
+  background: var(--bg-secondary); padding: 4px;
+  border-radius: var(--radius); border: 1px solid var(--border);
+}
+
+/* ========== Portfolio Page ========== */
+.portfolio-overview {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  margin-bottom: 24px;
+}
+@media (max-width: 900px) { .portfolio-overview { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .portfolio-overview { grid-template-columns: 1fr; } }
+
+.portfolio-stat-card {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 16px 18px;
+  background: var(--bg-card); border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+.portfolio-stat-label {
+  font-size: 11px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+}
+.portfolio-stat-value {
+  font-size: 20px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-family: "SF Mono","Consolas","Menlo",monospace;
+}
+.portfolio-stat-pnl { font-size: 22px; }
+
+.portfolio-category { margin-bottom: 24px; }
+.portfolio-category-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; flex-wrap: wrap; gap: 10px;
+}
+.portfolio-category-header h3 {
+  font-size: 15px; font-weight: 700;
+  color: var(--accent-light); letter-spacing: -0.2px;
+}
+.portfolio-category-summary {
+  display: flex; align-items: center; gap: 10px;
+}
+.portfolio-summary-label {
+  font-size: 11px; color: var(--text-muted); font-weight: 600;
+}
+.portfolio-summary-value {
+  font-size: 14px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: "SF Mono","Consolas","Menlo",monospace;
+}
+
+.name-cell-portfolio {
+  color: var(--text-primary); font-size: 12.5px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 200px; display: inline-block;
+}
+
+/* Portfolio table - no pointer cursor */
+.portfolio-category .stock-table tbody tr { cursor: default; }
