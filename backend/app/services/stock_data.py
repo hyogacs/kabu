@@ -1,12 +1,10 @@
 """Stock data fetching service.
 
 Directly calls Yahoo Finance chart API via httpx — no yfinance dependency.
-This bypasses yfinance's fragile cookie/crumb handling that causes
-JSONDecodeError on many corporate networks.
+Uses a persistent HTTP client with cached cookies for performance.
 """
 
 import logging
-import time
 from datetime import datetime, timezone
 
 import httpx
@@ -60,56 +58,57 @@ HEADERS = {
     ),
     "Accept": "application/json,text/html,application/xhtml+xml",
     "Accept-Language": "en-US,en;q=0.9",
-    "Accept-Encoding": "gzip, deflate, br",
     "Sec-Fetch-Mode": "navigate",
     "Sec-Fetch-Site": "none",
 }
 
-# Crumb cache
-_crumb: str | None = None
-_cookies: httpx.Cookies | None = None
+# Module-level persistent client (reuses TCP connections + cookies)
+_client: httpx.Client | None = None
+_crumb: str | None = None  # None = not tried yet, "" = tried and failed/not needed
+_session_ready = False
 
 
-def _get_http_client() -> httpx.Client:
-    """Create httpx client with proper settings."""
-    return httpx.Client(
-        headers=HEADERS,
-        follow_redirects=True,
-        timeout=15.0,
-    )
-
-
-def _init_cookies_and_crumb(client: httpx.Client) -> tuple[httpx.Cookies, str]:
-    """Get Yahoo Finance consent cookies and crumb token."""
-    global _crumb, _cookies
-    if _crumb and _cookies:
-        return _cookies, _crumb
-
-    # Step 1: Visit Yahoo Finance to get cookies (consent, etc.)
-    try:
-        resp = client.get("https://finance.yahoo.com/quote/AAPL/")
-        cookies = resp.cookies
-    except Exception:
-        cookies = httpx.Cookies()
-
-    # Step 2: Get crumb
-    try:
-        resp = client.get(
-            "https://query2.finance.yahoo.com/v1/test/getcrumb",
-            cookies=cookies,
+def _get_client() -> httpx.Client:
+    """Get or create the persistent HTTP client."""
+    global _client
+    if _client is None:
+        _client = httpx.Client(
+            headers=HEADERS,
+            follow_redirects=True,
+            timeout=15.0,
         )
+    return _client
+
+
+def _ensure_session() -> None:
+    """Initialize session cookies + crumb once on first use."""
+    global _crumb, _session_ready
+
+    if _session_ready:
+        return
+
+    client = _get_client()
+
+    # Step 1: Get cookies from Yahoo Finance
+    try:
+        client.get("https://finance.yahoo.com/quote/AAPL/")
+        logger.info("Yahoo Finance session cookies obtained")
+    except Exception as e:
+        logger.warning(f"Failed to get Yahoo cookies (non-fatal): {e}")
+
+    # Step 2: Try to get crumb (optional — chart API works without it)
+    try:
+        resp = client.get("https://query2.finance.yahoo.com/v1/test/getcrumb")
         if resp.status_code == 200 and resp.text.strip():
             _crumb = resp.text.strip()
-            _cookies = cookies
-            logger.info(f"Yahoo Finance crumb obtained: {_crumb[:8]}...")
-            return _cookies, _crumb
-    except Exception as e:
-        logger.warning(f"Failed to get crumb: {e}")
+            logger.info(f"Yahoo crumb obtained: {_crumb[:8]}...")
+        else:
+            _crumb = ""  # Not available, that's fine
+            logger.info("Yahoo crumb not available (chart API works without it)")
+    except Exception:
+        _crumb = ""
 
-    # Return empty if crumb fails — chart API may still work without it
-    _cookies = cookies
-    _crumb = ""
-    return _cookies, _crumb
+    _session_ready = True
 
 
 def _fetch_chart(
@@ -118,54 +117,50 @@ def _fetch_chart(
     interval: str = "1d",
 ) -> dict | None:
     """Fetch chart data from Yahoo Finance v8 chart API."""
-    with _get_http_client() as client:
-        cookies, crumb = _init_cookies_and_crumb(client)
+    _ensure_session()
+    client = _get_client()
 
-        params: dict = {
-            "range": range_,
-            "interval": interval,
-            "includePrePost": "false",
-            "events": "",
-        }
-        if crumb:
-            params["crumb"] = crumb
+    params: dict = {
+        "range": range_,
+        "interval": interval,
+        "includePrePost": "false",
+        "events": "",
+    }
+    if _crumb:
+        params["crumb"] = _crumb
 
-        url = YAHOO_CHART_URL.format(symbol=symbol)
+    url = YAHOO_CHART_URL.format(symbol=symbol)
 
-        # Try up to 2 times (with and without crumb)
-        for attempt in range(2):
-            try:
-                resp = client.get(url, params=params, cookies=cookies)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    result = data.get("chart", {}).get("result")
-                    if result and len(result) > 0:
-                        return result[0]
-                    else:
-                        error = data.get("chart", {}).get("error")
-                        logger.error(f"Yahoo chart error for {symbol}: {error}")
-                        return None
-                elif resp.status_code == 401 and attempt == 0:
-                    # Crumb expired, refresh
-                    logger.info("Crumb expired, refreshing...")
-                    global _crumb, _cookies
-                    _crumb = None
-                    _cookies = None
-                    cookies, crumb = _init_cookies_and_crumb(client)
-                    if crumb:
-                        params["crumb"] = crumb
-                    continue
-                else:
-                    logger.error(
-                        f"Yahoo chart HTTP {resp.status_code} for {symbol}: "
-                        f"{resp.text[:200]}"
-                    )
-                    return None
-            except Exception as e:
-                logger.error(f"Yahoo chart request failed for {symbol}: {e}")
-                return None
+    try:
+        resp = client.get(url, params=params)
+        if resp.status_code == 200:
+            data = resp.json()
+            result = data.get("chart", {}).get("result")
+            if result and len(result) > 0:
+                return result[0]
+            error = data.get("chart", {}).get("error")
+            logger.error(f"Yahoo chart error for {symbol}: {error}")
+            return None
 
-    return None
+        # 401 = crumb expired → refresh session once and retry
+        if resp.status_code == 401:
+            global _session_ready
+            _session_ready = False
+            _ensure_session()
+            if _crumb:
+                params["crumb"] = _crumb
+            resp = client.get(url, params=params)
+            if resp.status_code == 200:
+                data = resp.json()
+                result = data.get("chart", {}).get("result")
+                if result and len(result) > 0:
+                    return result[0]
+
+        logger.error(f"Yahoo chart HTTP {resp.status_code} for {symbol}")
+        return None
+    except Exception as e:
+        logger.error(f"Yahoo chart request failed for {symbol}: {e}")
+        return None
 
 
 def _parse_chart_to_df(chart: dict) -> pd.DataFrame:
@@ -185,17 +180,14 @@ def _parse_chart_to_df(chart: dict) -> pd.DataFrame:
         "Volume": quotes.get("volume", []),
     })
 
-    # Drop rows with None values (holidays, etc.)
     df.dropna(subset=["Close"], inplace=True)
     df.set_index("Date", inplace=True)
-
-    # Replace any remaining None/NaN in volume
     df["Volume"] = df["Volume"].fillna(0).astype(int)
 
     return df
 
 
-# ── Helper ───────────────────────────────────────────────────────
+# ── Helpers ──────────────────────────────────────────────────────
 
 def _detect_market(symbol: str) -> Market:
     return Market.JP if symbol.endswith(".T") else Market.US
@@ -243,11 +235,9 @@ def fetch_quote(symbol: str) -> StockQuote | None:
     change = current_price - previous_close
     change_pct = (change / previous_close * 100) if previous_close else 0
 
-    name = _get_name(symbol, meta)
-
     return StockQuote(
         symbol=symbol,
-        name=name,
+        name=_get_name(symbol, meta),
         market=market,
         currency=meta.get("currency", _get_currency(market)),
         current_price=round(current_price, 2),
